@@ -54,6 +54,8 @@ func (s *Server) Start() {
 						fmt.Println("[Error] Catch buffer error ",err)
 						continue
 					}
+
+					fmt.Printf("[Start] Receive client buffer %s, cnt %d\n",buf,cnt)
 					// echo function
 					if _, err := conn.Write(buf[:cnt]); err != nil {
 						fmt.Println("[Error] Catch write buffer error ",err)
