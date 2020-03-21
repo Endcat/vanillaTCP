@@ -1,7 +1,10 @@
 package vnet
 // server implement
 
-import "vanilla/viface"
+import (
+	"fmt"
+	"vanilla/viface"
+)
 
 type Server struct {
 	// define server properties
@@ -13,7 +16,8 @@ type Server struct {
 
 // define server methods (implement)
 func (s *Server) Start() {
-	
+	// get tcp addr
+	fmt.Printf("*[start] Server Listener %s:%d")
 }
 func (s *Server) Stop() {
 
@@ -26,7 +30,7 @@ func (s *Server) Serve() {
 func NewServer(name string) viface.IServer{
 	s := &Server{
 		Name:      name,
-		IPVersion: "TCP4",
+		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      8999,
 	}
