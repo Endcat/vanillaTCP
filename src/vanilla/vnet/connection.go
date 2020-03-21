@@ -1,6 +1,7 @@
 package vnet
 
 import (
+	"fmt"
 	"net"
 	"vanilla/viface"
 )
@@ -36,12 +37,53 @@ func NewConnection(conn *net.TCPConn, connID uint32, callbackAPI viface.HandleFu
 	return c
 }
 
+// connection reader service
+func (c *Connection) StartReader() {
+	fmt.Println("[Start] Reader goroutine launching...")
+	defer fmt.Println("[Stop] connID = ",c.ConnID, " Reader terminated, remote addr = ", c.RemoteAddr().String())
+	defer c.Stop()
+
+	for {
+		buf := make([]byte, 512)
+		cnt, err := c.Conn.Read(buf)
+		if err != nil {
+			fmt.Println("[Error] Catch receive buffer error ", err)
+			continue
+		}
+
+		// call current connection's handleAPI
+		if err := c.handleAPI(c.Conn, buf, cnt); err != nil {
+			fmt.Println("[Error] Catch handle error ",err)
+			break
+		}
+	}
+}
+
 // start connection, ready to work
 func (c *Connection) Start() {
-
+	fmt.Println("[Start] Connection start.. ConnID = ", c.ConnID)
+	// launch reader service
+	go c.StartReader()
 }
 // stop connection, terminate
 func (c *Connection) Stop() {
+	fmt.Println("[Stop] Connection stop.. ConnID = ",c.ConnID)
+
+	// if already closed
+	if c.isClosed == true {
+		return
+	}
+	c.isClosed = true
+
+	// close socket connection
+	err := c.Conn.Close()
+	if err != nil {
+		fmt.Println("[Error] Catch close connection error ",err)
+		return
+	}
+
+	// gc
+	close(c.ExitChan)
 
 }
 // get current connection's socket conn
@@ -58,5 +100,5 @@ func (c *Connection) RemoteAddr() net.Addr {
 }
 // send data to remote client
 func (c *Connection) Send(data []byte) error {
-
+	return nil
 }

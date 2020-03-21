@@ -2,6 +2,7 @@ package vnet
 // server implement
 
 import (
+	"errors"
 	"fmt"
 	"net"
 	"vanilla/viface"
@@ -13,6 +14,17 @@ type Server struct {
 	IPVersion string
 	IP string
 	Port int
+}
+
+// define current client binding handleAPI
+func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
+	// echo service
+	fmt.Println("[Handle] Echo service... ")
+	if _,err := conn.Write(data[:cnt]); err != nil {
+		fmt.Println("[Error] Echo buffer error ",err)
+		return errors.New("CallBackToClient error")
+	}
+	return nil
 }
 
 // define server methods (implement)
@@ -36,6 +48,8 @@ func (s *Server) Start() {
 
 		// create listener successfully, listening
 		fmt.Println("[Start] Start Vanilla server successfully, Name = ",s.Name, "Listening...")
+		var cid uint32
+		cid = 0
 
 		// waiting connection
 		for {
@@ -45,24 +59,28 @@ func (s *Server) Start() {
 				continue
 			}
 
-			// connection established -> echo serving in maxlength 512
-			go func() {
-				for {
-					buf := make([]byte, 512)
-					cnt, err := conn.Read(buf)
-					if err != nil {
-						fmt.Println("[Error] Catch buffer error ",err)
-						continue
-					}
+			dealConn := NewConnection(conn, cid, CallBackToClient)
+			cid++
 
-					fmt.Printf("[Start] Receive client buffer %s, cnt %d\n",buf,cnt)
-					// echo function
-					if _, err := conn.Write(buf[:cnt]); err != nil {
-						fmt.Println("[Error] Catch write buffer error ",err)
-						continue
-					}
-				}
-			}()
+			go dealConn.Start()
+			//// connection established -> echo serving in maxlength 512
+			//go func() {
+			//	for {
+			//		buf := make([]byte, 512)
+			//		cnt, err := conn.Read(buf)
+			//		if err != nil {
+			//			fmt.Println("[Error] Catch buffer error ",err)
+			//			continue
+			//		}
+			//
+			//		fmt.Printf("[Start] Receive client buffer %s, cnt %d\n",buf,cnt)
+			//		// echo function
+			//		if _, err := conn.Write(buf[:cnt]); err != nil {
+			//			fmt.Println("[Error] Catch write buffer error ",err)
+			//			continue
+			//		}
+			//	}
+			//}()
 		}
 	}()
 }
