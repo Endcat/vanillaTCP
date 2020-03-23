@@ -7,4 +7,6 @@ type IServer interface {
 	Start()
 	Stop()
 	Serve()
+	// register router method
+	AddRouter(router IRouter)
 }

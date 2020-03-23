@@ -18,20 +18,24 @@ type Connection struct {
 	// current connection status
 	isClosed bool
 
-	// current connection binding service API
-	handleAPI viface.HandleFunc
+	//// current connection binding service API
+	//handleAPI viface.HandleFunc
 
 	// exit channel
 	ExitChan chan bool
+
+	// current connection router
+	Router viface.IRouter
 }
 
 // initiate connection method
-func NewConnection(conn *net.TCPConn, connID uint32, callbackAPI viface.HandleFunc) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, router viface.IRouter) *Connection {
 	c := &Connection{
 		Conn:      conn,
 		ConnID:    connID,
 		isClosed:  false,
-		handleAPI: callbackAPI,
+		Router:    router,
+		//handleAPI: callbackAPI,
 		ExitChan:  make(chan bool, 1),
 	}
 	return c
@@ -45,17 +49,30 @@ func (c *Connection) StartReader() {
 
 	for {
 		buf := make([]byte, 512)
-		cnt, err := c.Conn.Read(buf)
+		_, err := c.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("[Error] Catch receive buffer error ", err)
 			continue
 		}
 
-		// call current connection's handleAPI
-		if err := c.handleAPI(c.Conn, buf, cnt); err != nil {
-			fmt.Println("[Error] Catch handle error ",err)
-			break
+		// get current request data
+		req := Request{
+			conn:c,
+			data:buf,
 		}
+
+		// execute router methods
+		go func(request viface.IRequest) {
+			c.Router.PreHandle(request)
+			c.Router.Handle(request)
+			c.Router.PostHandle(request)
+		}(&req)
+
+		//// call current connection's handleAPI
+		//if err := c.handleAPI(c.Conn, buf, cnt); err != nil {
+		//	fmt.Println("[Error] Catch handle error ",err)
+		//	break
+		//}
 	}
 }
 

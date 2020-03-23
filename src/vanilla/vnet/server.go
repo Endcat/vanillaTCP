@@ -2,7 +2,6 @@ package vnet
 // server implement
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"vanilla/viface"
@@ -14,18 +13,20 @@ type Server struct {
 	IPVersion string
 	IP string
 	Port int
+	// current registered router
+	Router viface.IRouter
 }
 
-// define current client binding handleAPI
-func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
-	// echo service
-	fmt.Println("[Handle] Echo service... ")
-	if _,err := conn.Write(data[:cnt]); err != nil {
-		fmt.Println("[Error] Echo buffer error ",err)
-		return errors.New("CallBackToClient error")
-	}
-	return nil
-}
+//// define current client binding handleAPI
+//func CallBackToClient(conn *net.TCPConn, data []byte, cnt int) error {
+//	// echo service
+//	fmt.Println("[Handle] Echo service... ")
+//	if _,err := conn.Write(data[:cnt]); err != nil {
+//		fmt.Println("[Error] Echo buffer error ",err)
+//		return errors.New("CallBackToClient error")
+//	}
+//	return nil
+//}
 
 // define server methods (implement)
 func (s *Server) Start() {
@@ -59,7 +60,7 @@ func (s *Server) Start() {
 				continue
 			}
 
-			dealConn := NewConnection(conn, cid, CallBackToClient)
+			dealConn := NewConnection(conn, cid, s.Router)
 			cid++
 
 			go dealConn.Start()
@@ -90,9 +91,13 @@ func (s *Server) Stop() {
 func (s *Server) Serve() {
 	s.Start()
 
-	select {
+	select {}
+}
 
-	}
+// register router methods for current server
+func (s *Server) AddRouter(router viface.IRouter) {
+	s.Router = router
+	fmt.Println("[Router] Successfully added router!")
 }
 
 // server initiate
@@ -102,6 +107,7 @@ func NewServer(name string) viface.IServer{
 		IPVersion: "tcp4",
 		IP:        "0.0.0.0",
 		Port:      8999,
+		Router:nil,
 	}
 	return s
 }
