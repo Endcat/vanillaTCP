@@ -3,6 +3,8 @@ package utils
 import (
 	"encoding/json"
 	"io/ioutil"
+	"path"
+	"runtime"
 	"vanilla/viface"
 )
 
@@ -25,8 +27,11 @@ type GlobalObj struct {
 var GlobalObject *GlobalObj
 
 // load params from vanilla.json
+const dataFile = "../../Demo/testServer/conf/vanilla.json"
 func (g *GlobalObj) Reload() {
-	data, err := ioutil.ReadFile("conf/vanilla.json")
+	_, fileName, _, _ := runtime.Caller(1)
+	jsonFile := path.Join(path.Dir(fileName),dataFile)
+	data, err := ioutil.ReadFile(jsonFile)
 	if err != nil {panic(err)}
 
 	// parse vanilla.json

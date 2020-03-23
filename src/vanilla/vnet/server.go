@@ -36,7 +36,7 @@ func (s *Server) Start() {
 		utils.GlobalObject.Name,
 		utils.GlobalObject.Host,
 		utils.GlobalObject.TcpPort)
-	fmt.Printf("[Vanilla] Version %s, MaxConn: %d, MaxPacketSize: %d\n]",
+	fmt.Printf("[Vanilla] Version %s, MaxConn: %d, MaxPacketSize: %d\n",
 		utils.GlobalObject.Version,
 		utils.GlobalObject.MaxConn,
 		utils.GlobalObject.MaxPackageSize)
