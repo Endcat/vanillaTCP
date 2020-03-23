@@ -3,6 +3,7 @@ package vnet
 import (
 	"fmt"
 	"net"
+	"vanilla/utils"
 	"vanilla/viface"
 )
 
@@ -48,7 +49,7 @@ func (c *Connection) StartReader() {
 	defer c.Stop()
 
 	for {
-		buf := make([]byte, 512)
+		buf := make([]byte, utils.GlobalObject.MaxPackageSize)
 		_, err := c.Conn.Read(buf)
 		if err != nil {
 			fmt.Println("[Error] Catch receive buffer error ", err)

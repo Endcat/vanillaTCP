@@ -4,6 +4,7 @@ package vnet
 import (
 	"fmt"
 	"net"
+	"vanilla/utils"
 	"vanilla/viface"
 )
 
@@ -30,8 +31,15 @@ type Server struct {
 
 // define server methods (implement)
 func (s *Server) Start() {
-	// get server addr
-	fmt.Printf("[start] Server Listener %s:%d\n",s.IP,s.Port)
+	// print info
+	fmt.Printf("[Vanilla] Server name: %s, Listener at IP: %s, Port: %d is starting\n",
+		utils.GlobalObject.Name,
+		utils.GlobalObject.Host,
+		utils.GlobalObject.TcpPort)
+	fmt.Printf("[Vanilla] Version %s, MaxConn: %d, MaxPacketSize: %d\n]",
+		utils.GlobalObject.Version,
+		utils.GlobalObject.MaxConn,
+		utils.GlobalObject.MaxPackageSize)
 
 	go func() {
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d",s.IP,s.Port))
@@ -103,10 +111,10 @@ func (s *Server) AddRouter(router viface.IRouter) {
 // server initiate
 func NewServer(name string) viface.IServer{
 	s := &Server{
-		Name:      name,
+		Name:      utils.GlobalObject.Name,
 		IPVersion: "tcp4",
-		IP:        "0.0.0.0",
-		Port:      8999,
+		IP:        utils.GlobalObject.Host,
+		Port:      utils.GlobalObject.TcpPort,
 		Router:nil,
 	}
 	return s
