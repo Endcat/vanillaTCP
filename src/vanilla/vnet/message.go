@@ -7,6 +7,14 @@ type Message struct {
 	Data []byte
 }
 
+// create message pack
+func NewMsgPackage(id uint32, data []byte) *Message {
+	return &Message{
+		Id:      id,
+		DataLen: uint32(len(data)),
+		Data:    data,
+	}
+}
 
 // get message id
 func (m *Message) GetMsgId() uint32 {

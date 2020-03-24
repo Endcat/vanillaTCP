@@ -1,6 +1,7 @@
 package vnet
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -106,7 +107,6 @@ func (c *Connection) StartReader() {
 }
 
 
-
 // start connection, ready to work
 func (c *Connection) Start() {
 	fmt.Println("[Start] Connection start.. ConnID = ", c.ConnID)
@@ -147,6 +147,31 @@ func (c *Connection) RemoteAddr() net.Addr {
 	return c.Conn.RemoteAddr()
 }
 // send data to remote client
-func (c *Connection) Send(data []byte) error {
+//func (c *Connection) Send(data []byte) error {
+//	return nil
+//}
+
+// send message
+func (c *Connection) SendMsg(msgId uint32, data []byte) error {
+	if c.isClosed {
+		return errors.New("Connection closed when sending message")
+	}
+
+	// pack data
+	dp := NewDataPack()
+
+	// msgdatalen | msgid | data
+	binaryMsg, err := dp.Pack(NewMsgPackage(msgId, data))
+	if err != nil {
+		fmt.Println("[Error] Catch pack error, msg id = ",msgId)
+		return errors.New("Pack message error ")
+	}
+
+	// send data to client
+	if _, err := c.Conn.Write(binaryMsg); err != nil {
+		fmt.Println("[Error] Catch write message error, msg id = ",msgId," error: ",err)
+		return errors.New("connection write data error")
+	}
+
 	return nil
 }
