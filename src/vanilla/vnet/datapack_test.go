@@ -36,7 +36,7 @@ func TestDataPack(t *testing.T) {
 				_, err := io.ReadFull(conn, headData)
 				if err != nil {
 					fmt.Println("[Error] Catch read head error")
-					return
+					break
 				}
 
 				msgHead, err := dp.Unpack(headData)
@@ -57,7 +57,7 @@ func TestDataPack(t *testing.T) {
 					}
 
 					// read complete
-					fmt.Println("[Recv] Recv MsgID: ", msg.Id, " | dataLen = ",msg.DataLen," | data = ", msg.Data)
+					fmt.Println("[Recv] Recv MsgID: ", msg.Id, " | dataLen = ",msg.DataLen," | data = ", string(msg.Data))
 				}
 			}
 
