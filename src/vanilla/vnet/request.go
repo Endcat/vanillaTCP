@@ -6,7 +6,7 @@ type Request struct {
 	// established connection with client
 	conn viface.IConnection
 	// client request data
-	data []byte
+	msg viface.IMessage
 }
 
 // get current connection
@@ -15,5 +15,9 @@ func (r *Request) GetConnection() viface.IConnection {
 }
 // get request data
 func (r *Request) GetData() []byte {
-	return r.data
+	return r.msg.GetData()
+}
+
+func (r *Request) GetMsgID() uint32 {
+	return r.msg.GetMsgId()
 }

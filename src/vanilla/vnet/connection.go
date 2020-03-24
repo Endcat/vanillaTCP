@@ -2,8 +2,8 @@ package vnet
 
 import (
 	"fmt"
+	"io"
 	"net"
-	"vanilla/utils"
 	"vanilla/viface"
 )
 
@@ -49,17 +49,45 @@ func (c *Connection) StartReader() {
 	defer c.Stop()
 
 	for {
-		buf := make([]byte, utils.GlobalObject.MaxPackageSize)
-		_, err := c.Conn.Read(buf)
-		if err != nil {
-			fmt.Println("[Error] Catch receive buffer error ", err)
-			continue
+		//buf := make([]byte, utils.GlobalObject.MaxPackageSize)
+		//_, err := c.Conn.Read(buf)
+		//if err != nil {
+		//	fmt.Println("[Error] Catch receive buffer error ", err)
+		//	continue
+		//}
+
+		// create pack/unpack object
+		dp := NewDataPack()
+
+		// read client msg head
+		headData := make([]byte, dp.GetHeadLen())
+		if _, err := io.ReadFull(c.GetTCPConnection(), headData); err != nil {
+			fmt.Println("[Error] Catch read message head error ",err)
+			break
 		}
+
+		// unpack
+		msg, err := dp.Unpack(headData)
+		if err != nil {
+			fmt.Println("[Error] Catch unpack error ",err)
+			break
+		}
+
+		// read data
+		var data []byte
+		if msg.GetMsgLen() > 0 {
+			data = make([]byte, msg.GetMsgLen())
+			if _, err := io.ReadFull(c.GetTCPConnection(), data); err != nil {
+				fmt.Println("[Error] Catch read message data error ",err)
+				break
+			}
+		}
+		msg.SetData(data)
 
 		// get current request data
 		req := Request{
 			conn:c,
-			data:buf,
+			msg:msg,
 		}
 
 		// execute router methods
@@ -76,6 +104,8 @@ func (c *Connection) StartReader() {
 		//}
 	}
 }
+
+
 
 // start connection, ready to work
 func (c *Connection) Start() {
