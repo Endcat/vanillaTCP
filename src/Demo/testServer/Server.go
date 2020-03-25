@@ -7,15 +7,29 @@ import (
 )
 
 // router test
+type HelloVanillaRouter struct {
+	vnet.BaseRouter
+}
+
+func (this *HelloVanillaRouter) Handle(request viface.IRequest) {
+	fmt.Println("[Server] Call HelloVanillaRouter handle...")
+	fmt.Println("[Server] Recv from client: msgID = ",request.GetMsgID(), ", data = ",string(request.GetData()))
+
+	err := request.GetConnection().SendMsg(200, []byte("zxzxzxzxzxzx"))
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 type PingRouter struct {
 	vnet.BaseRouter
 }
 
 func (this *PingRouter) Handle(request viface.IRequest) {
-	fmt.Println("[Server] Call router handle...")
+	fmt.Println("[Server] Call HelloVanillaRouter handle...")
 	fmt.Println("[Server] Recv from client: msgID = ",request.GetMsgID(), ", data = ",string(request.GetData()))
 
-	err := request.GetConnection().SendMsg(1, []byte("zxzxzxzxzxzx"))
+	err := request.GetConnection().SendMsg(201, []byte("zxzxzxzxzxzx"))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -25,7 +39,8 @@ func main()  {
 	// create server handler with Vanilla api
 	s := vnet.NewServer("[Test 0x01]")
 	// add router
-	s.AddRouter(&PingRouter{})
+	s.AddRouter(0, &HelloVanillaRouter{})
+	s.AddRouter(1, &PingRouter{})
 	// launch server
 	s.Serve()
 }
@@ -34,7 +49,7 @@ func main()  {
 
 
 // prehandle test
-//func (this *PingRouter) PreHandle(request viface.IRequest) {
+//func (this *HelloVanillaRouter) PreHandle(request viface.IRequest) {
 //	fmt.Println("[Server] Call router PreHandle...")
 //	_, err := request.GetConnection().GetTCPConnection().Write([]byte("before ping..."))
 //	if err != nil {
@@ -42,7 +57,7 @@ func main()  {
 //	}
 //}
 // handle test
-//func (this *PingRouter) Handle(request viface.IRequest) {
+//func (this *HelloVanillaRouter) Handle(request viface.IRequest) {
 //	fmt.Println("[Server] Call router Handle...")
 //	_, err := request.GetConnection().GetTCPConnection().Write([]byte("ping..."))
 //	if err != nil {
@@ -50,7 +65,7 @@ func main()  {
 //	}
 //}
 // posthandle test
-//func (this *PingRouter) PostHandle(request viface.IRequest) {
+//func (this *HelloVanillaRouter) PostHandle(request viface.IRequest) {
 //	fmt.Println("[Server] Call router PostHandle...")
 //	_, err := request.GetConnection().GetTCPConnection().Write([]byte("after ping..."))
 //	if err != nil {

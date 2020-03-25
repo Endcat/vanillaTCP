@@ -11,7 +11,7 @@ import (
 // simulate client
 
 func main() {
-	fmt.Println("[Client] Client start...")
+	fmt.Println("[Client] Client1 start...")
 	time.Sleep(1 * time.Second)
 
 	// connect to server, get connection
@@ -23,7 +23,7 @@ func main() {
 
 	for {
 		dp := vnet.NewDataPack()
-		binaryMsg, err := dp.Pack(vnet.NewMsgPackage(0, []byte("Vanilla client test")))
+		binaryMsg, err := dp.Pack(vnet.NewMsgPackage(1, []byte("Vanilla client1 test")))
 		if err != nil {
 			fmt.Println("[Error] Catch pack error", err)
 			return
