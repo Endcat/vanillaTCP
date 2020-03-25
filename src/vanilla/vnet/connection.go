@@ -26,6 +26,9 @@ type Connection struct {
 	// exit channel
 	ExitChan chan bool
 
+	// read/write go routine
+	msgChan chan []byte
+
 	// current connection router
 	//Router viface.IRouter
 	// message handler
@@ -38,6 +41,7 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler viface.IMsgHandl
 		Conn:      conn,
 		ConnID:    connID,
 		isClosed:  false,
+		msgChan: make(chan []byte),
 		//Router:    router,
 		//handleAPI: callbackAPI,
 		MsgHandler: msgHandler,
@@ -113,12 +117,35 @@ func (c *Connection) StartReader() {
 	}
 }
 
+// write go routine
+func (c *Connection) StartWriter() {
+	fmt.Println("[Start] Writer goroutine launching...")
+	defer fmt.Println("[Stop] connID = ",c.ConnID, " Writer terminated, remote addr = ", c.RemoteAddr().String())
+
+	for {
+		select {
+		case data := <-c.msgChan:
+			// write data to client
+			if _, err := c.Conn.Write(data); err != nil {
+				fmt.Println("[Error] Catch send data error ",err)
+				return
+			}
+
+		case <-c.ExitChan:
+			// reader terminated, terminate writer
+			return
+		}
+
+	}
+}
 
 // start connection, ready to work
 func (c *Connection) Start() {
 	fmt.Println("[Start] Connection start.. ConnID = ", c.ConnID)
 	// launch reader service
 	go c.StartReader()
+	// launch writer service
+	go c.StartWriter()
 }
 // stop connection, terminate
 func (c *Connection) Stop() {
@@ -137,8 +164,12 @@ func (c *Connection) Stop() {
 		return
 	}
 
+	// notice to terminate writer
+	c.ExitChan <- true
+
 	// gc
 	close(c.ExitChan)
+	close(c.msgChan)
 
 }
 // get current connection's socket conn
@@ -175,10 +206,12 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	}
 
 	// send data to client
-	if _, err := c.Conn.Write(binaryMsg); err != nil {
-		fmt.Println("[Error] Catch write message error, msg id = ",msgId," error: ",err)
-		return errors.New("connection write data error")
-	}
+	c.msgChan <- binaryMsg
+
+	//if _, err := c.Conn.Write(binaryMsg); err != nil {
+	//	fmt.Println("[Error] Catch write message error, msg id = ",msgId," error: ",err)
+	//	return errors.New("connection write data error")
+	//}
 
 	return nil
 }
