@@ -8,5 +8,5 @@ type IServer interface {
 	Stop()
 	Serve()
 	// register router method
-	AddRouter(router IRouter)
+	AddRouter(msgID uint32, router IRouter)
 }

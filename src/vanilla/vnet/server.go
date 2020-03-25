@@ -15,7 +15,9 @@ type Server struct {
 	IP string
 	Port int
 	// current registered router
-	Router viface.IRouter
+	//Router viface.IRouter
+	// current server message handler
+	MsgHandler viface.IMsgHandle
 }
 
 //// define current client binding handleAPI
@@ -68,7 +70,7 @@ func (s *Server) Start() {
 				continue
 			}
 
-			dealConn := NewConnection(conn, cid, s.Router)
+			dealConn := NewConnection(conn, cid, s.MsgHandler)
 			cid++
 
 			go dealConn.Start()
@@ -103,8 +105,8 @@ func (s *Server) Serve() {
 }
 
 // register router methods for current server
-func (s *Server) AddRouter(router viface.IRouter) {
-	s.Router = router
+func (s *Server) AddRouter(msgID uint32, router viface.IRouter) {
+	s.MsgHandler.AddRouter(msgID, router)
 	fmt.Println("[Router] Successfully added router!")
 }
 
@@ -115,7 +117,9 @@ func NewServer(name string) viface.IServer{
 		IPVersion: "tcp4",
 		IP:        utils.GlobalObject.Host,
 		Port:      utils.GlobalObject.TcpPort,
-		Router:nil,
+		//Router:nil,
+		MsgHandler: NewMsgHandle(),
 	}
+
 	return s
 }

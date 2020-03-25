@@ -27,17 +27,20 @@ type Connection struct {
 	ExitChan chan bool
 
 	// current connection router
-	Router viface.IRouter
+	//Router viface.IRouter
+	// message handler
+	MsgHandler viface.IMsgHandle
 }
 
 // initiate connection method
-func NewConnection(conn *net.TCPConn, connID uint32, router viface.IRouter) *Connection {
+func NewConnection(conn *net.TCPConn, connID uint32, msgHandler viface.IMsgHandle) *Connection {
 	c := &Connection{
 		Conn:      conn,
 		ConnID:    connID,
 		isClosed:  false,
-		Router:    router,
+		//Router:    router,
 		//handleAPI: callbackAPI,
+		MsgHandler: msgHandler,
 		ExitChan:  make(chan bool, 1),
 	}
 	return c
@@ -91,12 +94,16 @@ func (c *Connection) StartReader() {
 			msg:msg,
 		}
 
+		// call message handler
+		go c.MsgHandler.DoMsgHandler(&req)
+
+
 		// execute router methods
-		go func(request viface.IRequest) {
-			c.Router.PreHandle(request)
-			c.Router.Handle(request)
-			c.Router.PostHandle(request)
-		}(&req)
+		//go func(request viface.IRequest) {
+		//	c.Router.PreHandle(request)
+		//	c.Router.Handle(request)
+		//	c.Router.PostHandle(request)
+		//}(&req)
 
 		//// call current connection's handleAPI
 		//if err := c.handleAPI(c.Conn, buf, cnt); err != nil {
