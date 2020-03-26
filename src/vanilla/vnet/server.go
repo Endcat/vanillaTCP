@@ -18,6 +18,8 @@ type Server struct {
 	//Router viface.IRouter
 	// current server message handler
 	MsgHandler viface.IMsgHandle
+	// current server connection manager
+	ConnMgr viface.IConnManager
 }
 
 //// define current client binding handleAPI
@@ -73,7 +75,16 @@ func (s *Server) Start() {
 				continue
 			}
 
-			dealConn := NewConnection(conn, cid, s.MsgHandler)
+			if s.ConnMgr.Len() >= utils.GlobalObject.MaxConn {
+				fmt.Println("[ConnMgr] Too Many Connections detected, MaxConn = ",utils.GlobalObject.MaxConn)
+				if err := conn.Close(); err != nil {
+					fmt.Println("[Error] Catch connection close error, ",err)
+					return
+				}
+				continue
+			}
+
+			dealConn := NewConnection(s, conn, cid, s.MsgHandler)
 			cid++
 
 			go dealConn.Start()
@@ -99,7 +110,8 @@ func (s *Server) Start() {
 	}()
 }
 func (s *Server) Stop() {
-
+	fmt.Println("[Stop] Vanilla server stopped, name = ",s.Name)
+	s.ConnMgr.ClearConn()
 }
 func (s *Server) Serve() {
 	s.Start()
@@ -113,6 +125,10 @@ func (s *Server) AddRouter(msgID uint32, router viface.IRouter) {
 	fmt.Println("[Router] Successfully added router!")
 }
 
+func (s *Server) GetConnMgr() viface.IConnManager {
+	return s.ConnMgr
+}
+
 // server initiate
 func NewServer(name string) viface.IServer{
 	s := &Server{
@@ -122,7 +138,11 @@ func NewServer(name string) viface.IServer{
 		Port:      utils.GlobalObject.TcpPort,
 		//Router:nil,
 		MsgHandler: NewMsgHandle(),
+		ConnMgr: NewConnManager(),
 	}
+
+	// add conn to connMgr
+
 
 	return s
 }

@@ -12,6 +12,9 @@ import (
 // connection module
 
 type Connection struct {
+	// current connected server
+	TcpServer viface.IServer
+
 	// current connection socket
 	Conn *net.TCPConn
 
@@ -37,8 +40,9 @@ type Connection struct {
 }
 
 // initiate connection method
-func NewConnection(conn *net.TCPConn, connID uint32, msgHandler viface.IMsgHandle) *Connection {
+func NewConnection(server viface.IServer, conn *net.TCPConn, connID uint32, msgHandler viface.IMsgHandle) *Connection {
 	c := &Connection{
+		TcpServer: server,
 		Conn:      conn,
 		ConnID:    connID,
 		isClosed:  false,
@@ -48,6 +52,10 @@ func NewConnection(conn *net.TCPConn, connID uint32, msgHandler viface.IMsgHandl
 		MsgHandler: msgHandler,
 		ExitChan:  make(chan bool, 1),
 	}
+
+	// add conn to connection manager
+	c.TcpServer.GetConnMgr().Add(c)
+
 	return c
 }
 
@@ -172,6 +180,9 @@ func (c *Connection) Stop() {
 
 	// notice to terminate writer
 	c.ExitChan <- true
+
+	// remove connection from connMgr
+	c.TcpServer.GetConnMgr().Remove(c)
 
 	// gc
 	close(c.ExitChan)

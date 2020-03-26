@@ -9,4 +9,6 @@ type IServer interface {
 	Serve()
 	// register router method
 	AddRouter(msgID uint32, router IRouter)
+	// get current server connection manager
+	GetConnMgr() IConnManager
 }
