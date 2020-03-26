@@ -35,12 +35,32 @@ func (this *PingRouter) Handle(request viface.IRequest) {
 	}
 }
 
+// hook function
+func DoConnectionBegin(conn viface.IConnection) {
+	fmt.Println("[Server] DoConnectionBegin is called")
+	if err := conn.SendMsg(202, []byte("DoConnectionBegin is called")); err != nil {
+		fmt.Println(err)
+	}
+}
+
+func DoConnectionLost(conn viface.IConnection) {
+	fmt.Println("[Server] DoConnectionLost is called")
+	fmt.Println("[Server] conn ID = ", conn.GetConnID(), " terminated")
+}
+
 func main()  {
 	// create server handler with Vanilla api
 	s := vnet.NewServer("[Test 0x01]")
+
+	// register hook function
+	s.SetOnConnStart(DoConnectionBegin)
+	s.SetOnConnStop(DoConnectionLost)
+
+
 	// add router
 	s.AddRouter(0, &HelloVanillaRouter{})
 	s.AddRouter(1, &PingRouter{})
+
 	// launch server
 	s.Serve()
 }

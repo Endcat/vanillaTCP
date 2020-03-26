@@ -160,6 +160,9 @@ func (c *Connection) Start() {
 	go c.StartReader()
 	// launch writer service
 	go c.StartWriter()
+
+	// call hook function
+	c.TcpServer.CallOnConnStart(c)
 }
 // stop connection, terminate
 func (c *Connection) Stop() {
@@ -170,6 +173,9 @@ func (c *Connection) Stop() {
 		return
 	}
 	c.isClosed = true
+
+	// call hook function
+	c.TcpServer.CallOnConnStop(c)
 
 	// close socket connection
 	err := c.Conn.Close()

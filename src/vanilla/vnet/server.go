@@ -20,6 +20,10 @@ type Server struct {
 	MsgHandler viface.IMsgHandle
 	// current server connection manager
 	ConnMgr viface.IConnManager
+	// hook function before server created
+	OnConnStart func(conn viface.IConnection)
+	// hook function after server terminated
+	OnConnStop func(conn viface.IConnection)
 }
 
 //// define current client binding handleAPI
@@ -145,4 +149,27 @@ func NewServer(name string) viface.IServer{
 
 
 	return s
+}
+
+// register hook function
+func (s *Server) SetOnConnStart(hookFunc func(connection viface.IConnection)) {
+	s.OnConnStart = hookFunc
+}
+
+func (s *Server) SetOnConnStop(hookFunc func(connection viface.IConnection)) {
+	s.OnConnStop = hookFunc
+}
+
+func (s *Server) CallOnConnStart(conn viface.IConnection) {
+	if s.OnConnStart != nil {
+		fmt.Println("[HookFunc] Call OnConnStart ...")
+		s.OnConnStart(conn)
+	}
+}
+
+func (s *Server) CallOnConnStop(conn viface.IConnection) {
+	if s.OnConnStop != nil {
+		fmt.Println("[HookFunc] Call OnConnStop ...")
+		s.OnConnStop(conn)
+	}
 }
