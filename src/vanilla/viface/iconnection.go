@@ -17,6 +17,15 @@ type IConnection interface {
 	RemoteAddr() net.Addr
 	// send data to remote client
 	SendMsg(msgId uint32, data []byte) error
+
+	// set connection property
+	SetProperty(key string, value interface{})
+
+	// get connection property
+	GetProperty(key string) (interface{}, error)
+
+	// remove connection property
+	RemoveProperty(key string)
 }
 
 // define function to handle connection service

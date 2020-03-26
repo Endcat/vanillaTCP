@@ -41,11 +41,20 @@ func DoConnectionBegin(conn viface.IConnection) {
 	if err := conn.SendMsg(202, []byte("DoConnectionBegin is called")); err != nil {
 		fmt.Println(err)
 	}
+
+	// set property
+	fmt.Println("[Server] Setting properties ...")
+	conn.SetProperty("Name", "vanilla")
 }
 
 func DoConnectionLost(conn viface.IConnection) {
 	fmt.Println("[Server] DoConnectionLost is called")
 	fmt.Println("[Server] conn ID = ", conn.GetConnID(), " terminated")
+
+	// get property
+	if name, err := conn.GetProperty("Name"); err == nil {
+		fmt.Println("[Server] Get property Name = ", name)
+	}
 }
 
 func main()  {

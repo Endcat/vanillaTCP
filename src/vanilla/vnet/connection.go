@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"sync"
 	"vanilla/utils"
 	"vanilla/viface"
 )
@@ -37,6 +38,12 @@ type Connection struct {
 	//Router viface.IRouter
 	// message handler
 	MsgHandler viface.IMsgHandle
+
+	// connection properties map
+	property map[string]interface{}
+
+	// protect connection properties
+	propertyLock sync.RWMutex
 }
 
 // initiate connection method
@@ -51,6 +58,7 @@ func NewConnection(server viface.IServer, conn *net.TCPConn, connID uint32, msgH
 		//handleAPI: callbackAPI,
 		MsgHandler: msgHandler,
 		ExitChan:  make(chan bool, 1),
+		property: make(map[string]interface{}),
 	}
 
 	// add conn to connection manager
@@ -237,4 +245,32 @@ func (c *Connection) SendMsg(msgId uint32, data []byte) error {
 	//}
 
 	return nil
+}
+
+// set connection property
+func (c *Connection) SetProperty(key string, value interface{}) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	c.property[key] = value
+}
+
+// get connection property
+func (c *Connection) GetProperty(key string) (interface{}, error) {
+	c.propertyLock.RLock()
+	defer c.propertyLock.RUnlock()
+
+	if value, ok := c.property[key]; ok {
+		return value, nil
+	} else {
+		return nil, errors.New("no property found")
+	}
+}
+
+// remove connection property
+func (c *Connection) RemoveProperty(key string) {
+	c.propertyLock.Lock()
+	defer c.propertyLock.Unlock()
+
+	delete(c.property, key)
 }
