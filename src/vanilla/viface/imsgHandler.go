@@ -7,4 +7,8 @@ type IMsgHandle interface {
 	DoMsgHandler(request IRequest)
 	// add router message method
 	AddRouter(msgID uint32, router IRouter)
+	// start worker pool
+	StartWorkerPool()
+	// send message to task queue
+	SendMsgToTaskQueue(request IRequest)
 }
