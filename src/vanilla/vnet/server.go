@@ -44,6 +44,9 @@ func (s *Server) Start() {
 		utils.GlobalObject.MaxPackageSize)
 
 	go func() {
+		// start message queue
+		s.MsgHandler.StartWorkerPool()
+
 		addr, err := net.ResolveTCPAddr(s.IPVersion, fmt.Sprintf("%s:%d",s.IP,s.Port))
 		if err != nil {
 			fmt.Println("[Error] Catch TCP address error: ",err)

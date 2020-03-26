@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"vanilla/utils"
 	"vanilla/viface"
 )
 
@@ -98,8 +99,13 @@ func (c *Connection) StartReader() {
 			msg:msg,
 		}
 
-		// call message handler
-		go c.MsgHandler.DoMsgHandler(&req)
+		// if worker pool has started
+		if utils.GlobalObject.WorkerPoolSize > 0 {
+			c.MsgHandler.SendMsgToTaskQueue(&req)
+		} else {
+			// call message handler
+			go c.MsgHandler.DoMsgHandler(&req)
+		}
 
 
 		// execute router methods
